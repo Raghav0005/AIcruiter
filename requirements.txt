@@ -1,0 +1,10 @@
+aiohttp
+python-dotenv
+loguru
+'pipecat-ai[silero]'
+'pipecat-ai[cartesia]'
+websockets
+'pipecat-ai[google]'
+daily
+'pipecat-ai[daily]'
+'pipecat-ai[deepgram]'
