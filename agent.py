@@ -19,6 +19,7 @@ from pipecat.services.deepgram import DeepgramSTTService
 from pipecat.services.tavus import TavusVideoService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 from google.ai.generativelanguage_v1beta.types.content import Content
+from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 
 load_dotenv(override=True)
 
@@ -55,27 +56,26 @@ async def main():
         stt = DeepgramSTTService(api_key="d5a636d2ac4bf7071df5e90bd0131213a27eeb81")
 
         tts = CartesiaTTSService(
-            api_key="sk_car_kLx3_QKVtJeaRUJ21n1Sv",
+            api_key="sk_car_b1CdV89DpHq0njLlsWijO",
             voice_id="58db94c7-8a77-46a7-9107-b8b957f164a0",
-        )
-
-        system_instruction = (
-            "You are a helpful LLM in a WebRTC call. Your goal is to demonstrate your "
-            "capabilities in a succinct way. Your output will be converted to audio so don't "
-            "include special characters in your answers. Respond to what the user said in a "
-            "creative and helpful way."
         )
         
         llm = GoogleLLMService(
-            api_key='AIzaSyBbvBeYQ-wOLbo3b2K62RP1kvaPy4nIjtk',
-            model="gemini-2.0-flash-001",
-            system_instruction = system_instruction
+            api_key='AIzaSyAQRHz9zd9JX0PXx80TxAO8oBmFvarYVyo',
+            model="gemini-2.0-flash-001"
         )
- 
-        context = GoogleLLMContext(
-            messages = []
-        )
-        
+
+        messages = [
+            {
+                "role": "system",
+                "content": "You are a helpful LLM in a WebRTC call. Your goal is to demonstrate your "
+                "capabilities in a succinct way. Your output will be converted to audio so don't "
+                "include special characters in your answers. Respond to what the user said in a "
+                "creative and helpful way.",
+            },
+        ]
+
+        context = OpenAILLMContext(messages)
         context_aggregator = llm.create_context_aggregator(context)
         
         pipeline = Pipeline(
@@ -84,8 +84,8 @@ async def main():
                 stt,
                 context_aggregator.user(),
                 llm,
-                context_aggregator.assistant(),
                 tts,
+                context_aggregator.assistant(),
                 tavus,
                 transport.output(),
             ]
@@ -107,19 +107,16 @@ async def main():
         async def on_participant_joined(
             transport: DailyTransport, participant: Mapping[str, Any]
         ) -> None:
-            if participant.get("info", {}).get("userName", "") == persona_name:
-                logger.debug(f"Ignoring {participant['id']}'s microphone")
-                await transport.update_subscriptions(
-                    participant_settings={
-                        participant["id"]: {
-                            "media": {"microphone": "unsubscribed"},
-                        }
-                    })
-                await task.queue_frames(
-                    [
-                        context_aggregator.user().get_context_frame()
-                    ]
-                )
+            logger.debug(f"Ignoring {participant['id']}'s microphone")
+            await transport.update_subscriptions(
+                participant_settings={
+                    participant["id"]: {
+                        "media": {"microphone": "unsubscribed"},
+                    }
+                })
+            await task.queue_frames(
+                [context_aggregator.user().get_context_frame()]
+            )
             
 
         @transport.event_handler("on_participant_left")
