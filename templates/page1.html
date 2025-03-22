@@ -1,4 +1,247 @@
 {% extends "base.html" %}
-{% block content %} 
-<h1>Welcome to Page 1</h1>
+{% block content %}
+<div class="container py-4">
+    <!-- Page Title -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold text-primary">
+                <i class="bi bi-envelope-paper-fill me-3"></i>Send Interviews
+            </h1>
+            <p class="lead text-muted">Send automated interview requests to potential candidates</p>
+            <hr class="my-4">
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="card shadow border-0 rounded-3">
+        <div class="card-header py-3 bg-gradient text-white" style="background-color: #4e73df;">
+            <h3 class="mb-0 fw-light">
+                <i class="bi bi-person-badge me-2"></i><span id="dynamic-title">Send interview to</span> <span id="candidate-name-display"></span>
+            </h3>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" enctype="multipart/form-data">
+                <!-- Candidate Name -->
+                <div class="mb-4">
+                    <label for="name" class="form-label fw-medium">
+                        <i class="bi bi-person me-2"></i>Full Name
+                    </label>
+                    <input type="text" class="form-control shadow-sm" 
+                           id="name" name="name" placeholder="Enter candidate's full name" required>
+                </div>
+                
+                <!-- AI Agent Selection -->
+                <div class="mb-4">
+                    <label for="agent" class="form-label fw-medium">
+                        <i class="bi bi-robot me-2"></i>Interview Agent
+                    </label>
+                    <select class="form-select shadow-sm" id="agent" name="agent" required>
+                        <option value="" selected disabled>Select an interviewer agent...</option>
+                        <option value="software-engineer">Software Engineer</option>
+                        <option value="product-manager">Product Manager</option>
+                        <option value="marketing-specialist">Marketing Specialist</option>
+                        <option value="sales-representative">Sales Representative</option>
+                        <option value="ux-designer">UX Designer</option>
+                    </select>
+                    <small class="form-text text-muted">
+                        <i class="bi bi-info-circle"></i> Choose the AI interviewer that matches the position
+                    </small>
+                </div>
+                
+                <!-- Resume Upload -->
+                <div class="mb-4">
+                    <label for="resume" class="form-label fw-medium">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Resume
+                    </label>
+                    <div class="custom-file-upload">
+                        <input type="file" class="form-control shadow-sm" 
+                               id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                        <small class="form-text text-muted mt-1">
+                            <i class="bi bi-info-circle"></i> Accepted formats: PDF, DOC, DOCX (Max size: 5MB)
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Links Section -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium">
+                        <i class="bi bi-link-45deg me-2"></i>Professional Links
+                    </label>
+                    <div id="links-container">
+                        <div class="link-group mb-2">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-primary">
+                                    <i class="bi bi-linkedin"></i>
+                                </span>
+                                <input type="url" class="form-control shadow-sm" name="links[]" 
+                                       placeholder="LinkedIn profile URL">
+                            </div>
+                        </div>
+                        <div class="link-group mb-2">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-dark">
+                                    <i class="bi bi-github"></i>
+                                </span>
+                                <input type="url" class="form-control shadow-sm" name="links[]" 
+                                       placeholder="GitHub profile URL">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="add-link">
+                        <i class="bi bi-plus-circle me-1"></i>Add Another Link
+                    </button>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary shadow animate-btn">
+                        <i class="bi bi-envelope-check-fill me-2"></i>Send Interview Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for dynamic link addition -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const linksContainer = document.getElementById('links-container');
+        const addLinkButton = document.getElementById('add-link');
+        
+        // Dynamic title update functionality
+        const nameInput = document.getElementById('name');
+        const nameDisplay = document.getElementById('candidate-name-display');
+        
+        // Update function for the name display
+        function updateNameDisplay() {
+            const inputValue = nameInput.value.trim();
+            nameDisplay.textContent = inputValue ? inputValue : '';
+        }
+        
+        // Add event listeners for real-time updates
+        nameInput.addEventListener('input', updateNameDisplay);
+        nameInput.addEventListener('change', updateNameDisplay);
+        nameInput.addEventListener('keyup', updateNameDisplay);
+        
+        // Agent selection enhancement
+        const agentSelect = document.getElementById('agent');
+        agentSelect.addEventListener('change', function() {
+            // Add visual indication that an agent is selected
+            if (this.value) {
+                this.classList.add('border-primary');
+            } else {
+                this.classList.remove('border-primary');
+            }
+        });
+        
+        // Existing code for adding links
+        addLinkButton.addEventListener('click', function() {
+            const linkGroup = document.createElement('div');
+            linkGroup.className = 'link-group mb-2';
+            
+            const inputGroup = document.createElement('div');
+            inputGroup.className = 'input-group';
+            
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'input-group-text bg-light text-secondary';
+            iconSpan.innerHTML = '<i class="bi bi-link"></i>';
+            
+            const input = document.createElement('input');
+            input.type = 'url';
+            input.className = 'form-control shadow-sm';
+            input.name = 'links[]';
+            input.placeholder = 'Website or portfolio URL';
+            
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'btn btn-outline-danger';
+            removeButton.innerHTML = '<i class="bi bi-trash"></i>';
+            removeButton.addEventListener('click', function() {
+                linkGroup.remove();
+            });
+            
+            inputGroup.appendChild(iconSpan);
+            inputGroup.appendChild(input);
+            inputGroup.appendChild(removeButton);
+            linkGroup.appendChild(inputGroup);
+            linksContainer.appendChild(linkGroup);
+        });
+    });
+</script>
+
+<style>
+    /* Custom animations and styling */
+    .bg-gradient {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+    
+    .animate-btn {
+        transition: all 0.3s ease;
+    }
+    
+    .animate-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-control {
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+    }
+    
+    .card {
+        transition: all 0.3s ease;
+        border-radius: 0.5rem;
+    }
+    
+    .card-header {
+        border-top-left-radius: 0.5rem !important;
+        border-top-right-radius: 0.5rem !important;
+    }
+    
+    .input-group-text {
+        min-width: 45px;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .display-5 {
+        font-weight: 600;
+        letter-spacing: -0.5px;
+    }
+    
+    .lead {
+        font-weight: 400;
+    }
+    
+    hr {
+        opacity: 0.15;
+    }
+    
+    #candidate-name-display {
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    @media (max-width: 768px) {
+        .card-header {
+            padding: 1rem;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+    }
+    
+    .form-select:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+    }
+</style>
 {% endblock %}
