@@ -8,15 +8,13 @@ import sys
 import logging
 import warnings
 
+from agentmethods import get_interview_transcript
+
 # Suppress all warnings and logging messages
 logging.getLogger().setLevel(logging.ERROR)
 os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
 warnings.filterwarnings('ignore')
 
-# -------------------------
-# PUT YOUR TRANSCRIPTION HERE
-# -------------------------
-# Simply change this string and run the script - no other input needed
 transcription = '''
 '''
 
@@ -27,16 +25,9 @@ def setup_gemini():
     genai.configure(api_key=api_key)
     return genai.GenerativeModel('gemini-2.0-flash')
 
-def generate_interview_notes(transcription):
-    """
-    Process an interview transcription with Gemini and generate structured interview notes.
-    
-    Args:
-        transcription (str): The raw interview transcript
-        
-    Returns:
-        str: Structured interview notes
-    """
+def generate_interview_notes():
+    transcription = get_interview_transcript()
+
     # Initialize Gemini
     model = setup_gemini()
     
@@ -48,18 +39,15 @@ def generate_interview_notes(transcription):
     {transcription}
     """
     
-    # Generate the response
     response = model.generate_content(prompt)
-    
-    # Extract the notes
     notes = response.text
     
     return notes
 
-def process_transcript(transcription):
+def process_transcript():
     """Process an interview transcription quietly"""
     # Generate notes without printing status
-    notes = generate_interview_notes(transcription)
+    notes = generate_interview_notes()
     return notes
 
 def preprocess_text(text):
@@ -148,29 +136,29 @@ def predict_rating(text, model, tokenizer, max_length=512):
     
     return predicted_rating
 
-def analyze_interview(transcription):
+def analyze_interview():
     """Process interview and return only the rating"""
-    notes = process_transcript(transcription)
+    notes = process_transcript()
     model, tokenizer = load_model()
     
     if model is None or tokenizer is None:
         return 5.0  # Default value if model can't be loaded
     
     rating = predict_rating(notes, model, tokenizer)
-    return rating
+    return notes, rating
 
-def process_interview_transcription(transcription):
+def process_interview_transcription():
     """Process transcription and print only the rating"""
     if not transcription.strip():
         return 0
     
     # Get notes and rating without printing status
-    notes, rating = analyze_interview(transcription)
+    notes, rating = analyze_interview()
     
     # Print only the rating, nothing else
     print(f"{rating:.1f}")
     
-    return rating
+    return notes, rating
 
 def main():
     """Process the transcription from any source and show only the rating"""
@@ -191,7 +179,7 @@ def main():
                 input_transcription = transcription
         
         # Process and analyze transcription
-        notes = process_transcript(input_transcription)
+        notes = process_transcript()
         model, tokenizer = load_model()
         
         if model is None or tokenizer is None:
