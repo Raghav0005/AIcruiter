@@ -1,3 +1,5 @@
+# Note: Functonal AI Agent with a developed pipeline for prototyping
+
 import asyncio
 import json
 import os
@@ -33,20 +35,8 @@ logger.add(sys.stderr, level="DEBUG")
 
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 
-# Load candidate details from details.json
-def load_candidate_details():
-    with open('/Users/raghavv/Coding/AIcruiter/details.json', 'r') as f:
-        return json.load(f)
-
-candidate_details = load_candidate_details()
-candidate_name = candidate_details.get('name', 'Candidate')
-resume_filename = candidate_details.get('resume', '')
-candidate_links = candidate_details.get('links', [])
-
-# Configure RAG model
 RAG_MODEL = "gemini-2.0-flash-lite-preview-02-05"
-# Get RAG content from the specified resume file in the uploads directory
-RAG_CONTENT = get_rag_content(os.path.join('uploads', resume_filename))
+RAG_CONTENT = get_rag_content()
 genai.configure(api_key="AIzaSyAQRHz9zd9JX0PXx80TxAO8oBmFvarYVyo")
 
 RAG_PROMPT = f"""
@@ -120,7 +110,7 @@ async def main():
     # Use the SSL context in the ClientSession
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
         tavus = TavusVideoService(
-            api_key="2a160544227e45e4b26b5b1418455a48",
+            api_key="3c18d259a55f4786a94b948f97004afd",
             replica_id="raff7843cc3d",
             session=session,
             sample_rate=16000,
@@ -173,17 +163,15 @@ async def main():
             },
         ]
 
-        system_prompt = f"""You are conducting a behavioural interview for {candidate_name} on behalf of Google.
+        system_prompt = """You are conducting a behavioural interview for Raghav Vasudeva on behalf of Google.
                             Initially start the interview with introductions, and small questions for a little bit.
-                            You have access to the candidate's resume with the function query_knowledge_database. You can use the function
+                            You have access to his resume with the function query_knowledge_database. You can use the function
                             to ask any question about his/her resume, and you should a couple times in the interview, up to your discretion.
                             You can also query it if a follow-up question regarding the resume might be helpful at the point in the interview.
                             Your output will be converted to audio so don't 
                             include special characters in your answers (like .js, or extensions, etc.) Respond to what the user said in a
                             creative and helpful way.
                             """
-        # Additional candidate information:
-        # - Links: {', '.join(candidate_links)}
         messages = [
             {
                 "role": "system",

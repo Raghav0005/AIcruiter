@@ -62,17 +62,45 @@ def update_prompts(candidate_details):
     """
     
     candidate_name = candidate_details.get('name', 'Candidate')
-    candidate_links = candidate_details.get('links', [])
-    system_prompt = f"""You are conducting a behavioural interview for {candidate_name} on behalf of Google.
+    system_prompt = f"""Your name is Ari and you are conducting a behavioural interview for {candidate_name} on behalf of Google.
     Initially start the interview with introductions, and small questions for a little bit.
     You have access to the candidate's resume with the function query_knowledge_database. You can use the function
     to ask any question about his/her resume, and you should a couple times in the interview, up to your discretion.
     You can also query it if a follow-up question regarding the resume might be helpful at the point in the interview.
     Your output will be converted to audio so don't include special characters in your answers.
-    Additional candidate links: {', '.join(candidate_links)}
     """
     
     return RAG_PROMPT, system_prompt
+
+def get_query_knowledge_base_function(RAG_PROMPT):
+    # This closure captures RAG_PROMPT so that the registered function has access to it.
+    async def query_knowledge_base(function_name, tool_call_id, arguments, llm, context, result_callback):
+        logger.info(f"Querying knowledge base for question: {arguments['question']}")
+        client = genai.GenerativeModel(
+            model_name="gemini-2.0-flash-lite-preview-02-05",
+            system_instruction=RAG_PROMPT,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.1,
+                max_output_tokens=64,
+            ),
+        )
+        conversation_turns = context.messages[2:]
+        messages = []
+        for turn in conversation_turns:
+            messages.extend(context.to_standard_messages(turn))
+
+        messages = [turn for turn in messages if turn.get("role") != "tool" and not turn.get("tool_calls")]
+        messages = messages[-3:]
+        messages_json = json.dumps(messages, ensure_ascii=False, indent=2)
+
+        logger.info(f"Conversation turns: {messages_json}")
+        start = time.perf_counter()
+        response = client.generate_content(contents=[messages_json])
+        end = time.perf_counter()
+        logger.info(f"Time taken: {end - start:.2f} seconds")
+        logger.info(response.text)
+        await result_callback(response.text)
+    return query_knowledge_base
 
 async def initialize_room(session):
     tavus = TavusVideoService(
@@ -110,34 +138,7 @@ The Hiring Team
     send_email(smtp_server, port, sender_email, sender_password, recipient_email, subject, body)
     logger.info(f"Interview email sent to {recipient_email}")
 
-async def query_knowledge_base(function_name, tool_call_id, arguments, llm, context, result_callback):
-    logger.info(f"Querying knowledge base for question: {arguments['question']}")
-    client = genai.GenerativeModel(
-        model_name="gemini-2.0-flash-lite-preview-02-05",
-        system_instruction=RAG_PROMPT,
-        generation_config=genai.types.GenerationConfig(
-            temperature=0.1,
-            max_output_tokens=64,
-        ),
-    )
-    conversation_turns = context.messages[2:]
-    messages = []
-    for turn in conversation_turns:
-        messages.extend(context.to_standard_messages(turn))
-
-    messages = [turn for turn in messages if turn.get("role") != "tool" and not turn.get("tool_calls")]
-    messages = messages[-3:]
-    messages_json = json.dumps(messages, ensure_ascii=False, indent=2)
-
-    logger.info(f"Conversation turns: {messages_json}")
-    start = time.perf_counter()
-    response = client.generate_content(contents=[messages_json])
-    end = time.perf_counter()
-    logger.info(f"Time taken: {end - start:.2f} seconds")
-    logger.info(response.text)
-    await result_callback(response.text)
-
-async def run_pipeline(session, system_prompt, room_url, tavus, persona_name):
+async def run_pipeline(session, system_prompt, room_url, tavus, persona_name, RAG_PROMPT):
     stt = DeepgramSTTService(api_key="d5a636d2ac4bf7071df5e90bd0131213a27eeb81")
     tts = CartesiaTTSService(
         api_key="sk_car_b1CdV89DpHq0njLlsWijO",
@@ -147,7 +148,8 @@ async def run_pipeline(session, system_prompt, room_url, tavus, persona_name):
         api_key='AIzaSyAQRHz9zd9JX0PXx80TxAO8oBmFvarYVyo',
         model="gemini-2.0-flash-001"
     )
-    llm.register_function("query_knowledge_base", query_knowledge_base)
+    
+    llm.register_function("query_knowledge_base", get_query_knowledge_base_function(RAG_PROMPT))
     tools = [{
         "function_declarations": [
             {
@@ -234,7 +236,7 @@ async def process_interview_request():
             RAG_PROMPT, system_prompt = update_prompts(candidate_details)
             
             logger.info("Starting interview pipeline...")
-            await run_pipeline(session, system_prompt, room_url, tavus, persona_name)
+            await run_pipeline(session, system_prompt, room_url, tavus, persona_name, RAG_PROMPT)
             
             return True, "Interview process completed successfully"
         except Exception as e:
