@@ -83,6 +83,7 @@ def page1():
         uploaded_file = request.files.get('resume')
         agent_id = request.form.get('agent', '')
         links = request.form.getlist('links[]')
+        email = request.form.get('email', '')
         
         # Filter out empty links
         links = [link for link in links if link.strip()]
@@ -96,13 +97,11 @@ def page1():
             full_path = os.path.join('uploads', resume_filename)
             uploaded_file.save(full_path)
             
-            # Load existing details
-            details = get_candidate_details()
-            
             # Create new candidate entry (without agent_id)
             new_candidate = {
                 "name": candidate_name,
                 "resume": resume_filename,
+                "email": email,
                 "links": links,
                 "date_submitted": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "status": "pending"
