@@ -31,9 +31,12 @@ logger.add(sys.stderr, level="DEBUG")
 
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 
+# Import the email sender
+from email_sender import send_email
+
 ### Step 2: Load candidate details (from JSON) ###
 def load_candidate_details():
-    with open('/Users/raghavv/Coding/AIcruiter/details.json', 'r') as f:
+    with open('details.json', 'r') as f:
         return json.load(f)
 
 ### Step 4: Update prompts using candidate details ###
@@ -80,7 +83,7 @@ def update_prompts(candidate_details):
 ### Step 3: Initialize the room and send the URL via email ###
 async def initialize_room(session):
     tavus = TavusVideoService(
-        api_key="2a160544227e45e4b26b5b1418455a48",
+        api_key="3c18d259a55f4786a94b948f97004afd",
         replica_id="raff7843cc3d",
         session=session,
         sample_rate=16000,
@@ -91,6 +94,33 @@ async def initialize_room(session):
     # e.g., send_email(candidate_details, room_url)
     logger.info(f"Room URL is {room_url} and will be emailed to the candidate.")
     return tavus, persona_name, room_url
+
+def send_interview_email(candidate_details, room_url):
+    """Send the interview URL to the candidate via email"""
+    recipient_email = candidate_details.get('email', '')
+    name = candidate_details.get('name', 'Candidate')
+    subject = f"Your AIcruiter Interview Link - {name}"
+    body = f"""Hello {name},
+
+Thank you for your interest in our position. We've prepared an AI-powered interview for you.
+
+Please click the link below to start your interview:
+{room_url}
+
+The interview will assess your qualifications and experience. You can take it anytime within the next 48 hours.
+
+Best regards,
+The Hiring Team
+"""
+    
+    # Send the email
+    smtp_server = 'smtp.gmail.com'
+    port = 465
+    sender_email = 'vasuraghav04@gmail.com'
+    sender_password = 'utgn zjdp tyhs udnc'
+    
+    send_email(smtp_server, port, sender_email, sender_password, recipient_email, subject, body)
+    logger.info(f"Interview email sent to {recipient_email}")
 
 ### The query_knowledge_base function remains separate ###
 async def query_knowledge_base(RAG_PROMPT, function_name, tool_call_id, arguments, llm, context, result_callback):
@@ -207,3 +237,50 @@ async def run_pipeline(session, system_prompt, room_url, tavus, persona_name):
 
     runner = PipelineRunner()
     await runner.run(task)
+
+### Main orchestration function ###
+async def process_interview_request():
+    """Main function that orchestrates the entire interview process"""
+    # 1. Load candidate details from JSON
+    candidate_details = load_candidate_details()
+    
+    # 2. Initialize an aiohttp session for HTTP requests
+    async with aiohttp.ClientSession() as session:
+        try:
+            # 3. Initialize the room and get the URL
+            logger.info("Initializing interview room...")
+            tavus, persona_name, room_url = await initialize_room(session)
+            
+            # 4. Send the URL to the candidate via email
+            logger.info(f"Sending interview link to candidate: {candidate_details.get('name', 'Candidate')}")
+            send_interview_email(candidate_details, room_url)
+            
+            # 5. Update the prompts with candidate details
+            logger.info("Updating prompts with candidate details...")
+            RAG_PROMPT, system_prompt = update_prompts(candidate_details)
+            
+            # 6. Run the LLM pipeline
+            logger.info("Starting interview pipeline...")
+            await run_pipeline(session, system_prompt, room_url, tavus, persona_name)
+            
+            return True, "Interview process completed successfully"
+        except Exception as e:
+            logger.error(f"Error in interview process: {str(e)}")
+            return False, str(e)
+
+def start_interview_process():
+    """Function to be called from Flask to start the interview process"""
+    # Run the async process in a new event loop
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        success, message = loop.run_until_complete(process_interview_request())
+        return success, message
+    except Exception as e:
+        logger.error(f"Error in interview process: {e}")
+        return False, str(e)
+
+# Allow direct execution for testing
+if __name__ == "__main__":
+    success, message = start_interview_process()
+    print(f"Process {'succeeded' if success else 'failed'}: {message}")

@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, flash, redirect, url_for, jso
 import os
 import json
 from datetime import datetime
+from agentmethods import start_interview_process
+import threading
 
 app = Flask(__name__)
 app.secret_key = 'aicruitersecretkey'  # Required for flash messages
@@ -74,48 +76,46 @@ def home():
 
 @app.route('/page1', methods=['GET', 'POST'])
 def page1():
-    # Get agents for the dropdown
-    agents = get_agents()
-    
     if request.method == 'POST':
-        # Get form data
-        candidate_name = request.form.get('name', '')
-        uploaded_file = request.files.get('resume')
-        agent_id = request.form.get('agent', '')
-        links = request.form.getlist('links[]')
-        email = request.form.get('email', '')
-        
-        # Filter out empty links
-        links = [link for link in links if link.strip()]
-        
-        resume_filename = ""
-        
-        # Process resume upload
-        if uploaded_file and uploaded_file.filename:
-            # Create a safe filename
-            resume_filename = f"{candidate_name.replace(' ', '_')}_resume{os.path.splitext(uploaded_file.filename)[1]}"
-            full_path = os.path.join('uploads', resume_filename)
-            uploaded_file.save(full_path)
+        try:
+            # Extract form data
+            name = request.form['name']
+            email = request.form['email']
             
-            # Create new candidate entry (without agent_id)
-            new_candidate = {
-                "name": candidate_name,
-                "resume": resume_filename,
-                "email": email,
-                "links": links,
-                "date_submitted": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "status": "pending"
+            # Process resume if uploaded
+            resume_filename = ''
+            if 'resume' in request.files and request.files['resume'].filename:
+                resume = request.files['resume']
+                resume_filename = f"{name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}.{resume.filename.split('.')[-1]}"
+                resume.save(os.path.join('uploads', resume_filename))
+            
+            # Process links
+            links = request.form.getlist('links[]')
+            links = [link for link in links if link.strip()]  # Filter out empty links
+            
+            # Save candidate details
+            details = {
+                'name': name,
+                'email': email,
+                'resume': resume_filename,
+                'links': links,
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
+            save_candidate_details(details)
             
-            # Save updated details
-            save_candidate_details(new_candidate)
+            # Call the interview process directly instead of using a thread
+            success, message = start_interview_process()
             
-            flash(f'Application for {candidate_name} submitted successfully!', 'success')
+            if success:
+                flash('Interview request sent successfully! The candidate will receive an email with the interview link.', 'success')
+            else:
+                flash(f'Interview setup failed: {message}', 'danger')
+                
             return redirect(url_for('page1'))
-        else:
-            flash('Please upload a resume file', 'danger')
+        except Exception as e:
+            flash(f'Error: {str(e)}', 'danger')
     
-    return render_template('page1.html', agents=agents)
+    return render_template('page1.html')
 
 @app.route('/page2')
 def page2():
