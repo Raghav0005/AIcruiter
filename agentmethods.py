@@ -90,9 +90,9 @@ def update_prompts(candidate_details):
         criteria_text += "\n".join([f"- {criterion}" for criterion in criteria])
     
     system_prompt = f"""Your name is Ari and you are conducting a behavioural interview for {candidate_name} for the role of {job_title}.
-    {personality_style}
+    This should be your personality style: {personality_style}
     
-    {criteria_text}
+    This is some of the candidate criteria: {criteria_text}
     
     Company values: {company_values}
     
