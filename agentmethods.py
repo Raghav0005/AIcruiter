@@ -29,19 +29,13 @@ load_dotenv(override=True)
 logger.remove(0)
 logger.add(sys.stderr, level="DEBUG")
 
-ssl_context = ssl.create_default_context(cafile=certifi.where())
-
-# Import the email sender
 from email_sender import send_email
 
-### Step 2: Load candidate details (from JSON) ###
 def load_candidate_details():
     with open('details.json', 'r') as f:
         return json.load(f)
 
-### Step 4: Update prompts using candidate details ###
 def update_prompts(candidate_details):
-    # Update RAG content and prompt using candidate resume details
     resume_filename = candidate_details.get('resume', '')
     rag_content = get_rag_content(os.path.join('uploads', resume_filename))
     
@@ -80,7 +74,6 @@ def update_prompts(candidate_details):
     
     return RAG_PROMPT, system_prompt
 
-### Step 3: Initialize the room and send the URL via email ###
 async def initialize_room(session):
     tavus = TavusVideoService(
         api_key="3c18d259a55f4786a94b948f97004afd",
@@ -90,13 +83,10 @@ async def initialize_room(session):
     )
     persona_name = await tavus.get_persona_name()
     room_url = await tavus.initialize()
-    # Here you would call your email function to send the room_url with candidate details.
-    # e.g., send_email(candidate_details, room_url)
     logger.info(f"Room URL is {room_url} and will be emailed to the candidate.")
     return tavus, persona_name, room_url
 
 def send_interview_email(candidate_details, room_url):
-    """Send the interview URL to the candidate via email"""
     recipient_email = candidate_details.get('email', '')
     name = candidate_details.get('name', 'Candidate')
     subject = f"Your AIcruiter Interview Link - {name}"
@@ -112,8 +102,6 @@ The interview will assess your qualifications and experience. You can take it an
 Best regards,
 The Hiring Team
 """
-    
-    # Send the email
     smtp_server = 'smtp.gmail.com'
     port = 465
     sender_email = 'vasuraghav04@gmail.com'
@@ -122,8 +110,7 @@ The Hiring Team
     send_email(smtp_server, port, sender_email, sender_password, recipient_email, subject, body)
     logger.info(f"Interview email sent to {recipient_email}")
 
-### The query_knowledge_base function remains separate ###
-async def query_knowledge_base(RAG_PROMPT, function_name, tool_call_id, arguments, llm, context, result_callback):
+async def query_knowledge_base(function_name, tool_call_id, arguments, llm, context, result_callback):
     logger.info(f"Querying knowledge base for question: {arguments['question']}")
     client = genai.GenerativeModel(
         model_name="gemini-2.0-flash-lite-preview-02-05",
@@ -133,7 +120,6 @@ async def query_knowledge_base(RAG_PROMPT, function_name, tool_call_id, argument
             max_output_tokens=64,
         ),
     )
-    # Process conversation history
     conversation_turns = context.messages[2:]
     messages = []
     for turn in conversation_turns:
@@ -151,9 +137,7 @@ async def query_knowledge_base(RAG_PROMPT, function_name, tool_call_id, argument
     logger.info(response.text)
     await result_callback(response.text)
 
-### Step 5: Run the LLM pipeline ###
 async def run_pipeline(session, system_prompt, room_url, tavus, persona_name):
-    # Set up services: STT, TTS, LLM
     stt = DeepgramSTTService(api_key="d5a636d2ac4bf7071df5e90bd0131213a27eeb81")
     tts = CartesiaTTSService(
         api_key="sk_car_b1CdV89DpHq0njLlsWijO",
@@ -182,12 +166,10 @@ async def run_pipeline(session, system_prompt, room_url, tavus, persona_name):
         ],
     }]
 
-    # Create context with the updated system prompt
     messages = [{"role": "system", "content": system_prompt}]
     context = OpenAILLMContext(messages, tools)
     context_aggregator = llm.create_context_aggregator(context)
 
-    # Configure the pipeline with all the services and transport
     transport = DailyTransport(
         room_url=room_url,
         token=None,
@@ -222,7 +204,6 @@ async def run_pipeline(session, system_prompt, room_url, tavus, persona_name):
         ),
     )
 
-    # (Optional) Define event handlers for participants if needed
     @transport.event_handler("on_first_participant_joined")
     async def on_participant_joined(transport: DailyTransport, participant: dict) -> None:
         logger.debug(f"Ignoring {participant['id']}'s microphone")
@@ -238,28 +219,20 @@ async def run_pipeline(session, system_prompt, room_url, tavus, persona_name):
     runner = PipelineRunner()
     await runner.run(task)
 
-### Main orchestration function ###
 async def process_interview_request():
-    """Main function that orchestrates the entire interview process"""
-    # 1. Load candidate details from JSON
     candidate_details = load_candidate_details()
     
-    # 2. Initialize an aiohttp session for HTTP requests
     async with aiohttp.ClientSession() as session:
         try:
-            # 3. Initialize the room and get the URL
             logger.info("Initializing interview room...")
             tavus, persona_name, room_url = await initialize_room(session)
             
-            # 4. Send the URL to the candidate via email
             logger.info(f"Sending interview link to candidate: {candidate_details.get('name', 'Candidate')}")
             send_interview_email(candidate_details, room_url)
             
-            # 5. Update the prompts with candidate details
             logger.info("Updating prompts with candidate details...")
             RAG_PROMPT, system_prompt = update_prompts(candidate_details)
             
-            # 6. Run the LLM pipeline
             logger.info("Starting interview pipeline...")
             await run_pipeline(session, system_prompt, room_url, tavus, persona_name)
             
@@ -269,18 +242,14 @@ async def process_interview_request():
             return False, str(e)
 
 def start_interview_process():
-    """Function to be called from Flask to start the interview process"""
-    # Run the async process in a new event loop
     try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        success, message = loop.run_until_complete(process_interview_request())
+        # Directly run the async process in the main thread.
+        success, message = asyncio.run(process_interview_request())
         return success, message
     except Exception as e:
         logger.error(f"Error in interview process: {e}")
         return False, str(e)
 
-# Allow direct execution for testing
 if __name__ == "__main__":
     success, message = start_interview_process()
     print(f"Process {'succeeded' if success else 'failed'}: {message}")
