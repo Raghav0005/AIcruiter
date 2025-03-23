@@ -21,16 +21,3 @@ def send_email(smtp_server, port, sender_email, sender_password, recipient_email
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
         return False
-
-if __name__ == '__main__':
-    # Test settings (update these values with your own credentials and recipient)
-    smtp_server = 'smtp.gmail.com'
-    port = 465  # SSL port for Gmail
-    sender_email = 'vasuraghav04@gmail.com'
-    sender_password = 'utgn zjdp tyhs udnc'  # Use an app password if required
-    recipient_email = 'lakyvasu08@gmail.com'
-    subject = 'Test Email from Python'
-    body = 'Hello,\n\nThis is a test email sent using Python.\n\nBest regards,\nPython Script'
-
-    # Send the test email
-    send_email(smtp_server, port, sender_email, sender_password, recipient_email, subject, body)
