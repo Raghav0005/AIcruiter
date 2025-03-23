@@ -15,6 +15,7 @@ from loguru import logger
 
 from rag import get_rag_content
 import google.generativeai as genai
+from config import load_api_keys
 
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.pipeline.pipeline import Pipeline
@@ -36,8 +37,8 @@ logger.add(sys.stderr, level="DEBUG")
 ssl_context = ssl.create_default_context(cafile=certifi.where())
 
 RAG_MODEL = "gemini-2.0-flash-lite-preview-02-05"
-RAG_CONTENT = get_rag_content()
-genai.configure(api_key="AIzaSyAQRHz9zd9JX0PXx80TxAO8oBmFvarYVyo")
+RAG_CONTENT = get_rag_content("Resume_W26.pdf")
+genai.configure(api_key=load_api_keys("google_gemini_api_key"))
 
 RAG_PROMPT = f"""
 You are an interviewer designed to interview a candidate based solely on the provided knowledge base, which is a resume.
@@ -110,8 +111,8 @@ async def main():
     # Use the SSL context in the ClientSession
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
         tavus = TavusVideoService(
-            api_key="3c18d259a55f4786a94b948f97004afd",
-            replica_id="raff7843cc3d",
+            api_key=load_api_keys("tavus_api_key"),
+            replica_id=load_api_keys("tavus_replica_id"),
             session=session,
             sample_rate=16000,
         )
@@ -130,15 +131,15 @@ async def main():
             ),
         )
 
-        stt = DeepgramSTTService(api_key="d5a636d2ac4bf7071df5e90bd0131213a27eeb81")
+        stt = DeepgramSTTService(api_key=load_api_keys("deepgram_api_key"))
 
         tts = CartesiaTTSService(
-            api_key="sk_car_b1CdV89DpHq0njLlsWijO",
-            voice_id="58db94c7-8a77-46a7-9107-b8b957f164a0",
+            api_key=load_api_keys("cartesia_api_key"),
+            voice_id=load_api_keys("cartesia_voice_id"),
         )
         
         llm = GoogleLLMService(
-            api_key='AIzaSyAQRHz9zd9JX0PXx80TxAO8oBmFvarYVyo',
+            api_key=load_api_keys("google_gemini_api_key"),
             model="gemini-2.0-flash-001"
         )
 
