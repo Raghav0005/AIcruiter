@@ -33,7 +33,7 @@ logger.add(sys.stderr, level="DEBUG")
 from email_sender import send_email
 
 def load_candidate_details():
-    with open('details.json', 'r') as f:
+    with open('data/details.json', 'r') as f:
         return json.load(f)
 
 def update_prompts(candidate_details):
@@ -63,7 +63,41 @@ def update_prompts(candidate_details):
     """
     
     candidate_name = candidate_details.get('name', 'Candidate')
-    system_prompt = f"""Your name is Ari and you are conducting a behavioural interview for {candidate_name} on behalf of Google.
+    agent = candidate_details.get('agent', {})
+    
+    # Set default values if agent isn't available
+    job_title = agent.get('title', 'the position') if agent else 'the position'
+    company_values = agent.get('company_values', '') if agent else ''
+    job_description = agent.get('description', '') if agent else ''
+    personality_type = agent.get('personality', {}).get('type', 'professional') if agent else 'professional'
+    criteria = agent.get('criteria', []) if agent else []
+    
+    # Personalize the system prompt based on agent information
+    personality_style = ""
+    if personality_type == "friendly":
+        personality_style = "Be friendly, warm and approachable. Use casual language while remaining professional."
+    elif personality_type == "technical":
+        personality_style = "Be technically focused and detailed. Ask in-depth questions about technical skills."
+    elif personality_type == "professional":
+        personality_style = "Maintain a formal and professional demeanor throughout the interview."
+    elif personality_type == "custom" and agent and agent.get('personality', {}).get('description'):
+        personality_style = agent.get('personality', {}).get('description')
+    
+    # Construct criteria text if available
+    criteria_text = ""
+    if criteria:
+        criteria_text = "Pay special attention to these criteria in the candidate's background:\n"
+        criteria_text += "\n".join([f"- {criterion}" for criterion in criteria])
+    
+    system_prompt = f"""Your name is Ari and you are conducting a behavioural interview for {candidate_name} for the role of {job_title}.
+    {personality_style}
+    
+    {criteria_text}
+    
+    Company values: {company_values}
+    
+    Job description: {job_description}
+    
     Initially start the interview with introductions, and small questions for a little bit.
     You have access to the candidate's resume with the function query_knowledge_database.
     Don't mention the name of this function to the candidate.

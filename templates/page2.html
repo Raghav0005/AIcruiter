@@ -75,7 +75,7 @@
                                     <label class="form-label fw-medium">
                                         <i class="bi bi-building me-2 text-primary"></i>Company Values
                                     </label>
-                                    <textarea class="form-control" rows="3" placeholder="Describe your company's core values and culture">{{ agent.values }}</textarea>
+                                    <textarea class="form-control" rows="3" placeholder="Describe your company's core values and culture">{{ agent.company_values }}</textarea>
                                     <small class="form-text text-muted">What makes your company unique and what you stand for</small>
                                 </div>
                             </div>
@@ -106,9 +106,6 @@
                                             
                                             <input type="radio" class="btn-check" name="personality-{{ loop.index }}" id="personality-{{ loop.index }}-3" value="technical">
                                             <label class="btn btn-outline-secondary" for="personality-{{ loop.index }}-3">Technical</label>
-                                            
-                                            <input type="radio" class="btn-check" name="personality-{{ loop.index }}" id="personality-{{ loop.index }}-4" value="custom">
-                                            <label class="btn btn-outline-secondary" for="personality-{{ loop.index }}-4">Custom</label>
                                         </div>
                                     </div>
                                     
@@ -253,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const categorySelect = form.querySelector('select');
                 const category = categorySelect.options[categorySelect.selectedIndex].text;
-                const values = form.querySelector('textarea[placeholder*="core values"]').value.trim();
+                const company_values = form.querySelector('textarea[placeholder*="core values"]').value.trim();
                 const description = form.querySelector('textarea[placeholder*="responsibilities"]').value.trim();
                 
                 // Personality
@@ -279,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     id: id,
                     title: title,
                     category: category,
-                    values: values,
+                    company_values: company_values, // Use company_values instead of values
                     description: description,
                     personality: {
                         type: personalityType,
@@ -385,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <label class="form-label fw-medium">
                                         <i class="bi bi-briefcase-fill me-2 text-primary"></i>Job Title
                                     </label>
-                                    <input type="text" class="form-control job-title-input" placeholder="Enter job title" value="New Position">
+                                    <input type="text" class="form-control job-title-input" placeholder="New Position" value="">
                                     <small class="form-text text-muted">The specific job position being hired for</small>
                                 </div>
 
@@ -442,9 +439,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                             
                                             <input type="radio" class="btn-check" name="personality-${jobCount}" id="personality-${jobCount}-3" value="technical">
                                             <label class="btn btn-outline-secondary" for="personality-${jobCount}-3">Technical</label>
-                                            
-                                            <input type="radio" class="btn-check" name="personality-${jobCount}" id="personality-${jobCount}-4" value="custom">
-                                            <label class="btn btn-outline-secondary" for="personality-${jobCount}-4">Custom</label>
                                         </div>
                                     </div>
                                     
