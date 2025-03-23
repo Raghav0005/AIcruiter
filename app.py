@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
 import os
 import json
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'aicruitersecretkey'  # Required for flash messages
@@ -11,6 +12,7 @@ os.makedirs('data', exist_ok=True)
 
 # File to store agents data
 AGENTS_FILE = 'data/agents.json'
+DETAILS_FILE = 'details.json'  # Path to the details.json file
 
 # Initialize or load agents
 def get_agents():
@@ -50,6 +52,22 @@ def save_agents(agents):
     with open(AGENTS_FILE, 'w') as f:
         json.dump(agents, f, indent=2)
 
+# Function to load existing candidate details
+def get_candidate_details():
+    if os.path.exists(DETAILS_FILE):
+        try:
+            with open(DETAILS_FILE, 'r') as f:
+                return json.load(f)
+        except:
+            return {"candidates": []}
+    else:
+        return {"candidates": []}
+
+# Function to save candidate details
+def save_candidate_details(details):
+    with open(DETAILS_FILE, 'w') as f:
+        json.dump(details, f, indent=2)
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -66,11 +84,33 @@ def page1():
         agent_id = request.form.get('agent', '')
         links = request.form.getlist('links[]')
         
+        # Filter out empty links
+        links = [link for link in links if link.strip()]
+        
+        resume_filename = ""
+        
         # Process resume upload
         if uploaded_file and uploaded_file.filename:
             # Create a safe filename
-            filename = os.path.join('uploads', f"{candidate_name.replace(' ', '_')}_resume{os.path.splitext(uploaded_file.filename)[1]}")
-            uploaded_file.save(filename)
+            resume_filename = f"{candidate_name.replace(' ', '_')}_resume{os.path.splitext(uploaded_file.filename)[1]}"
+            full_path = os.path.join('uploads', resume_filename)
+            uploaded_file.save(full_path)
+            
+            # Load existing details
+            details = get_candidate_details()
+            
+            # Create new candidate entry (without agent_id)
+            new_candidate = {
+                "name": candidate_name,
+                "resume": resume_filename,
+                "links": links,
+                "date_submitted": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "status": "pending"
+            }
+            
+            # Save updated details
+            save_candidate_details(new_candidate)
+            
             flash(f'Application for {candidate_name} submitted successfully!', 'success')
             return redirect(url_for('page1'))
         else:
