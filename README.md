@@ -1,6 +1,7 @@
 # AIcruiter
 
 Created at GenAI Genesis 2025.
+
 AIcruiter is an AI-powered interview agent that automates and enhances the recruitment process through intelligent candidate screening and interviewing.
 It aims to encourage human empowerment by eliminating the unconscious human bias in interviews, along with the time consuming HR work.
 
@@ -32,11 +33,11 @@ AIcruiter uses artificial intelligence converstational agents to conduct technic
 
 ## Features
 
-- HR control center to manage AI agent settings
-    - Customizable Agents (to tailor model to company requirements, values and job description)
-    - Sends link to AI conducted interview via email
-- Fully AI conducted interactive and hyper-realistic interview video call to assess candidate
-- Can process candidate rating with semantic model
+- HR Control Center to customize AI agent personality, values, and questions
+- Conversational AI Agent that conducts live interviews with real-time STT → LLM → TTS pipeline
+- Email Automation to send interview invites with secure video links
+- WebRTC-based Interviews using Daily + Pipecat for minimal latency
+- Scoring Engine Direct Integration (Coming Soon): Semantic model to rate candidates based on responses
 
 ## Installation
 
@@ -78,8 +79,5 @@ Note the `email` and `email_password` are for the invidiuals who send the email 
 
 Run the app with `python app.py` or `python3 app.py`, whichever one suits your environment the most.
 
-3. View results in the generated reports folder
-
-
 ## Dependencies
-Please see dependencies specified in `requirements.txt`
+Please see dependencies specified in `requirements.txt`.
