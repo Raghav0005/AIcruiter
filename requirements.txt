@@ -13,3 +13,6 @@ uvicorn
 pipecat-ai[daily,elevenlabs,openai,silero,google]
 PyPDF2
 email-validator
+torch
+transformers
+google-generativeai
