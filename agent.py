@@ -108,7 +108,7 @@ async def main():
     # Use the SSL context in the ClientSession
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
         tavus = TavusVideoService(
-            api_key="878784f9f43442b69bbbff0865503bde",
+            api_key="2a160544227e45e4b26b5b1418455a48",
             replica_id="raff7843cc3d",
             session=session,
             sample_rate=16000,
