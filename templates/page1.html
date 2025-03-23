@@ -37,14 +37,17 @@
                     </label>
                     <select class="form-select shadow-sm" id="agent" name="agent" required>
                         <option value="" selected disabled>Select an interviewer agent...</option>
-                        <option value="software-engineer">Software Engineer</option>
-                        <option value="product-manager">Product Manager</option>
-                        <option value="marketing-specialist">Marketing Specialist</option>
-                        <option value="sales-representative">Sales Representative</option>
-                        <option value="ux-designer">UX Designer</option>
+                        {% if agents %}
+                            {% for agent in agents %}
+                                <option value="{{ agent.id }}">{{ agent.title }} ({{ agent.category }})</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="" disabled>No agents available - create one in AI Agent Studio</option>
+                        {% endif %}
                     </select>
                     <small class="form-text text-muted">
-                        <i class="bi bi-info-circle"></i> Choose the AI interviewer that matches the position
+                        <i class="bi bi-info-circle"></i> Choose the AI interviewer that matches the position or 
+                        <a href="{{ url_for('page2') }}" class="text-primary">create a new agent</a>
                     </small>
                 </div>
                 
