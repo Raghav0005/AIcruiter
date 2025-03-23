@@ -12,7 +12,7 @@
         </div>
     </div>
 
-    <!-- Add New Job Position Button -->
+    <!-- Add New Interview Agent Button -->
     <div class="mb-4 d-flex">
         <button type="button" class="btn btn-primary btn-lg shadow-sm d-flex align-items-center" id="add-job-btn">
             <i class="bi bi-plus-circle-fill me-2"></i>Create New Interview Agent
@@ -25,20 +25,20 @@
 
     <!-- Job Positions Accordion -->
     <div class="accordion custom-accordion" id="jobAccordion">
-        <!-- Initial Job Position (as a template) -->
-        <div class="accordion-item job-item mb-4 border rounded-4 shadow">
+        {% for agent in agents %}
+        <div class="accordion-item job-item mb-4 border rounded-4 shadow" data-agent-id="{{ agent.id }}">
             <h2 class="accordion-header position-relative">
                 <div class="position-badge">
                     <i class="bi bi-briefcase-fill"></i>
                 </div>
-                <button class="accordion-button rounded-top-4 ps-5" type="button" data-bs-toggle="collapse" data-bs-target="#job-collapse-1">
+                <button class="accordion-button {% if not loop.first %}collapsed{% endif %} rounded-top-4 ps-5" type="button" data-bs-toggle="collapse" data-bs-target="#job-collapse-{{ loop.index }}">
                     <div class="d-flex justify-content-between align-items-center w-100 pe-3">
-                        <span class="job-title-display fw-bold">Software Engineer</span>
-                        <span class="badge bg-primary rounded-pill d-none d-md-inline">Tech</span>
+                        <span class="job-title-display fw-bold">{{ agent.title }}</span>
+                        <span class="badge bg-primary rounded-pill d-none d-md-inline">{{ agent.category }}</span>
                     </div>
                 </button>
             </h2>
-            <div id="job-collapse-1" class="accordion-collapse collapse show" data-bs-parent="#jobAccordion">
+            <div id="job-collapse-{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#jobAccordion">
                 <div class="accordion-body">
                     <form class="job-form">
                         <div class="row mb-4">
@@ -49,8 +49,7 @@
                                     <label class="form-label fw-medium">
                                         <i class="bi bi-briefcase-fill me-2 text-primary"></i>Job Title
                                     </label>
-                                    <input type="text" class="form-control job-title-input" 
-                                           placeholder="Enter job title" value="Software Engineer">
+                                    <input type="text" class="form-control job-title-input" placeholder="Enter job title" value="{{ agent.title }}">
                                     <small class="form-text text-muted">The specific job position being hired for</small>
                                 </div>
 
@@ -60,13 +59,13 @@
                                         <i class="bi bi-tag-fill me-2 text-primary"></i>Category
                                     </label>
                                     <select class="form-select">
-                                        <option value="tech" selected>Technology</option>
-                                        <option value="marketing">Marketing</option>
-                                        <option value="sales">Sales</option>
-                                        <option value="design">Design</option>
-                                        <option value="finance">Finance</option>
-                                        <option value="hr">Human Resources</option>
-                                        <option value="other">Other</option>
+                                        <option value="tech" {% if agent.category == 'Technology' %}selected{% endif %}>Technology</option>
+                                        <option value="marketing" {% if agent.category == 'Marketing' %}selected{% endif %}>Marketing</option>
+                                        <option value="sales" {% if agent.category == 'Sales' %}selected{% endif %}>Sales</option>
+                                        <option value="design" {% if agent.category == 'Design' %}selected{% endif %}>Design</option>
+                                        <option value="finance" {% if agent.category == 'Finance' %}selected{% endif %}>Finance</option>
+                                        <option value="hr" {% if agent.category == 'Human Resources' %}selected{% endif %}>Human Resources</option>
+                                        <option value="other" {% if agent.category not in ['Technology', 'Marketing', 'Sales', 'Design', 'Finance', 'Human Resources'] %}selected{% endif %}>Other</option>
                                     </select>
                                     <small class="form-text text-muted">Job field or department</small>
                                 </div>
@@ -76,8 +75,7 @@
                                     <label class="form-label fw-medium">
                                         <i class="bi bi-building me-2 text-primary"></i>Company Values
                                     </label>
-                                    <textarea class="form-control" rows="3" 
-                                        placeholder="Describe your company's core values and culture">Innovation, collaboration, and excellence are our core values.</textarea>
+                                    <textarea class="form-control" rows="3" placeholder="Describe your company's core values and culture">{{ agent.company_values }}</textarea>
                                     <small class="form-text text-muted">What makes your company unique and what you stand for</small>
                                 </div>
                             </div>
@@ -89,8 +87,7 @@
                                     <label class="form-label fw-medium">
                                         <i class="bi bi-file-text me-2 text-primary"></i>Job Description
                                     </label>
-                                    <textarea class="form-control" rows="4" 
-                                        placeholder="Full description of job responsibilities and requirements">We're looking for a Software Engineer to develop high-quality applications. The ideal candidate should have experience with modern programming languages and frameworks.</textarea>
+                                    <textarea class="form-control" rows="4" placeholder="Full description of job responsibilities and requirements">{{ agent.description }}</textarea>
                                     <small class="form-text text-muted">Detailed explanation of the role, daily tasks, and team structure</small>
                                 </div>
 
@@ -101,22 +98,18 @@
                                     </label>
                                     <div class="mb-2">
                                         <div class="btn-group w-100" role="group">
-                                            <input type="radio" class="btn-check" name="personality-1" id="personality-1-1" value="professional" checked>
-                                            <label class="btn btn-outline-secondary" for="personality-1-1">Professional</label>
+                                            <input type="radio" class="btn-check" name="personality-{{ loop.index }}" id="personality-{{ loop.index }}-1" value="professional" checked>
+                                            <label class="btn btn-outline-secondary" for="personality-{{ loop.index }}-1">Professional</label>
                                             
-                                            <input type="radio" class="btn-check" name="personality-1" id="personality-1-2" value="friendly">
-                                            <label class="btn btn-outline-secondary" for="personality-1-2">Friendly</label>
+                                            <input type="radio" class="btn-check" name="personality-{{ loop.index }}" id="personality-{{ loop.index }}-2" value="friendly">
+                                            <label class="btn btn-outline-secondary" for="personality-{{ loop.index }}-2">Friendly</label>
                                             
-                                            <input type="radio" class="btn-check" name="personality-1" id="personality-1-3" value="technical">
-                                            <label class="btn btn-outline-secondary" for="personality-1-3">Technical</label>
-                                            
-                                            <input type="radio" class="btn-check" name="personality-1" id="personality-1-4" value="custom">
-                                            <label class="btn btn-outline-secondary" for="personality-1-4">Custom</label>
+                                            <input type="radio" class="btn-check" name="personality-{{ loop.index }}" id="personality-{{ loop.index }}-3" value="technical">
+                                            <label class="btn btn-outline-secondary" for="personality-{{ loop.index }}-3">Technical</label>
                                         </div>
                                     </div>
                                     
-                                    <textarea class="form-control" rows="3" 
-                                        placeholder="Describe how the AI should behave during interviews">Technical but approachable interviewer who focuses on practical coding skills and problem-solving abilities.</textarea>
+                                    <textarea class="form-control" rows="3" placeholder="Describe how the AI should behave during interviews"></textarea>
                                     <small class="form-text text-muted">The AI will adopt this personality during interviews</small>
                                 </div>
                             </div>
@@ -132,38 +125,346 @@
                                     </button>
                                 </span>
                             </label>
-                            <div id="criteria-container-1" class="criteria-container px-2 py-3 border rounded-3 bg-light">
-                                <div class="criteria-item mb-2">
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white">
-                                            <i class="bi bi-check-circle text-success"></i>
-                                        </span>
-                                        <input type="text" class="form-control" 
-                                               value="5+ years of software development experience">
-                                        <button type="button" class="btn btn-outline-danger remove-criteria">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                            <div class="criteria-container px-2 py-3 border rounded-3 bg-light">
+                                {% if agent.criteria is defined and agent.criteria %}
+                                    {% for crit in agent.criteria %}
+                                    <div class="criteria-item mb-2">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white">
+                                                <i class="bi bi-check-circle text-success"></i>
+                                            </span>
+                                            <input type="text" class="form-control" value="{{ crit }}">
+                                            <button type="button" class="btn btn-outline-danger remove-criteria">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="criteria-item mb-2">
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-white">
-                                            <i class="bi bi-check-circle text-success"></i>
-                                        </span>
-                                        <input type="text" class="form-control" 
-                                               value="Proficiency in JavaScript and React">
-                                        <button type="button" class="btn btn-outline-danger remove-criteria">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="criteria-item mb-2">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white">
+                                                <i class="bi bi-check-circle text-success"></i>
+                                            </span>
+                                            <input type="text" class="form-control" placeholder="Required skill or qualification">
+                                            <button type="button" class="btn btn-outline-danger remove-criteria">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
+                                {% endif %}
+                            </div>
+                            <small class="form-text text-muted mt-2">Skills, experience, and qualifications needed</small>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-outline-danger remove-job-btn">
+                                <i class="bi bi-trash me-2"></i>Delete Agent
+                            </button>
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary reset-btn">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Reset
+                                </button>
+                                <button type="submit" class="btn btn-primary save-agent-btn">
+                                    <i class="bi bi-save me-2"></i>Save Agent
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let jobCount = JSON.parse('{{ agents | length | tojson | safe }}');
+    
+    // Update job title display in accordion header
+    function setupTitleListeners(container) {
+        container.querySelectorAll('.job-title-input').forEach(input => {
+            if (!input.dataset.listenerAttached) {
+                input.addEventListener('input', function() {
+                    const jobItem = input.closest('.job-item');
+                    const titleDisplay = jobItem.querySelector('.job-title-display');
+                    titleDisplay.textContent = input.value || 'Untitled Position';
+                });
+                input.dataset.listenerAttached = true;
+            }
+        });
+    }
+    
+    // Add criteria item to criteria container
+    function addCriteriaItem(container) {
+        const criteriaItem = document.createElement('div');
+        criteriaItem.className = 'criteria-item mb-2';
+        criteriaItem.innerHTML = `
+            <div class="input-group">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-check-circle text-success"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Required skill or qualification">
+                <button type="button" class="btn btn-outline-danger remove-criteria">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(criteriaItem);
+        // Attach remove event
+        criteriaItem.querySelector('.remove-criteria').addEventListener('click', function() {
+            criteriaItem.remove();
+        });
+        // Focus on new input
+        criteriaItem.querySelector('input').focus();
+    }
+    
+    // Set up criteria buttons for existing job items
+    document.querySelectorAll('.add-criteria-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const container = btn.closest('.mb-4').querySelector('.criteria-container');
+            addCriteriaItem(container);
+        });
+    });
+    
+    // Attach remove criteria event for existing items
+    document.querySelectorAll('.remove-criteria').forEach(btn => {
+        btn.addEventListener('click', function() {
+            btn.closest('.criteria-item').remove();
+        });
+    });
+    
+    // Function to add form submit listener to save agent via API
+    function addFormSubmitListener(form) {
+        if (!form.dataset.listenerAttached) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Gather form data
+                const jobItem = form.closest('.job-item');
+                const titleInput = form.querySelector('.job-title-input');
+                const title = titleInput.value.trim() || 'Untitled Position';
+                // Generate id from title
+                const id = title.toLowerCase().replace(/\s+/g, '-');
+                
+                const categorySelect = form.querySelector('select');
+                const category = categorySelect.options[categorySelect.selectedIndex].text;
+                const company_values = form.querySelector('textarea[placeholder*="core values"]').value.trim();
+                const description = form.querySelector('textarea[placeholder*="responsibilities"]').value.trim();
+                
+                // Personality
+                const personalityRadios = form.querySelectorAll('input[name^="personality-"]');
+                let personalityType = 'professional';
+                personalityRadios.forEach(radio => {
+                    if (radio.checked) {
+                        personalityType = radio.value;
+                    }
+                });
+                const personalityDescription = form.querySelector('textarea[placeholder*="behave"]').value.trim();
+                
+                // Candidate criteria
+                const criteriaInputs = form.querySelectorAll('.criteria-container input');
+                const criteria = [];
+                criteriaInputs.forEach(input => {
+                    if (input.value.trim()) {
+                        criteria.push(input.value.trim());
+                    }
+                });
+                
+                const agentData = {
+                    id: id,
+                    title: title,
+                    category: category,
+                    company_values: company_values, // Use company_values instead of values
+                    description: description,
+                    personality: {
+                        type: personalityType,
+                        description: personalityDescription
+                    },
+                    criteria: criteria
+                };
+                
+                // Save agent via API
+                fetch("{{ url_for('save_agent') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(agentData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log("Agent saved:", agentData);
+                        // Update accordion header badge if category changed
+                        const headerBadge = jobItem.querySelector('.badge');
+                        headerBadge.textContent = category;
+                    } else {
+                        console.error("Error saving agent:", data.error);
+                    }
+                })
+                .catch(err => console.error("Fetch error:", err));
+            });
+            form.dataset.listenerAttached = true;
+        }
+    }
+    
+    // Attach submit listener to existing job forms
+    document.querySelectorAll('.job-form').forEach(form => {
+        addFormSubmitListener(form);
+    });
+    
+    // Reset button functionality
+    document.querySelectorAll('.reset-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const form = btn.closest('form');
+            form.reset();
+            setupTitleListeners(form);
+        });
+    });
+    
+    // Remove job agent functionality
+    document.querySelectorAll('.remove-job-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (document.querySelectorAll('.job-item').length > 1) {
+                const jobItem = btn.closest('.job-item');
+                const agentId = jobItem.getAttribute('data-agent-id');
+                if (agentId) {
+                    fetch(`{{ url_for('delete_agent', agent_id="") }}${agentId}`, {
+                        method: "DELETE"
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            jobItem.remove();
+                        } else {
+                            console.error("Error deleting agent:", data.error);
+                        }
+                    })
+                    .catch(err => console.error("Fetch error:", err));
+                } else {
+                    jobItem.remove();
+                }
+            } else {
+                alert('You need at least one job position.');
+            }
+        });
+    });
+    
+    // Add new job agent functionality
+    document.getElementById('add-job-btn').addEventListener('click', function() {
+        jobCount++;
+        const jobAccordion = document.getElementById('jobAccordion');
+        const newJobId = `job-collapse-${jobCount}`;
+        const newJobItem = document.createElement('div');
+        newJobItem.className = 'accordion-item job-item mb-4 border rounded-4 shadow';
+        newJobItem.innerHTML = `
+            <h2 class="accordion-header position-relative">
+                <div class="position-badge">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+                <button class="accordion-button collapsed rounded-top-4 ps-5" type="button" data-bs-toggle="collapse" data-bs-target="#${newJobId}">
+                    <div class="d-flex justify-content-between align-items-center w-100 pe-3">
+                        <span class="job-title-display fw-bold">New Position</span>
+                        <span class="badge bg-secondary rounded-pill d-none d-md-inline">Other</span>
+                    </div>
+                </button>
+            </h2>
+            <div id="${newJobId}" class="accordion-collapse collapse" data-bs-parent="#jobAccordion">
+                <div class="accordion-body">
+                    <form class="job-form">
+                        <div class="row mb-4">
+                            <!-- Left Column -->
+                            <div class="col-md-6 pe-md-4">
+                                <!-- Job Title -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">
+                                        <i class="bi bi-briefcase-fill me-2 text-primary"></i>Job Title
+                                    </label>
+                                    <input type="text" class="form-control job-title-input" placeholder="New Position" value="">
+                                    <small class="form-text text-muted">The specific job position being hired for</small>
                                 </div>
+
+                                <!-- Job Category -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">
+                                        <i class="bi bi-tag-fill me-2 text-primary"></i>Category
+                                    </label>
+                                    <select class="form-select">
+                                        <option value="tech">Technology</option>
+                                        <option value="marketing">Marketing</option>
+                                        <option value="sales">Sales</option>
+                                        <option value="design">Design</option>
+                                        <option value="finance">Finance</option>
+                                        <option value="hr">Human Resources</option>
+                                        <option value="other" selected>Other</option>
+                                    </select>
+                                    <small class="form-text text-muted">Job field or department</small>
+                                </div>
+
+                                <!-- Company Values -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">
+                                        <i class="bi bi-building me-2 text-primary"></i>Company Values
+                                    </label>
+                                    <textarea class="form-control" rows="3" placeholder="Describe your company's core values and culture"></textarea>
+                                    <small class="form-text text-muted">What makes your company unique and what you stand for</small>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6 ps-md-4">
+                                <!-- Job Description -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">
+                                        <i class="bi bi-file-text me-2 text-primary"></i>Job Description
+                                    </label>
+                                    <textarea class="form-control" rows="4" placeholder="Full description of job responsibilities and requirements"></textarea>
+                                    <small class="form-text text-muted">Detailed explanation of the role, daily tasks, and team structure</small>
+                                </div>
+
+                                <!-- AI Behavior -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium">
+                                        <i class="bi bi-gear me-2 text-primary"></i>AI Interviewer Personality
+                                    </label>
+                                    <div class="mb-2">
+                                        <div class="btn-group w-100" role="group">
+                                            <input type="radio" class="btn-check" name="personality-${jobCount}" id="personality-${jobCount}-1" value="professional" checked>
+                                            <label class="btn btn-outline-secondary" for="personality-${jobCount}-1">Professional</label>
+                                            
+                                            <input type="radio" class="btn-check" name="personality-${jobCount}" id="personality-${jobCount}-2" value="friendly">
+                                            <label class="btn btn-outline-secondary" for="personality-${jobCount}-2">Friendly</label>
+                                            
+                                            <input type="radio" class="btn-check" name="personality-${jobCount}" id="personality-${jobCount}-3" value="technical">
+                                            <label class="btn btn-outline-secondary" for="personality-${jobCount}-3">Technical</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <textarea class="form-control" rows="3" placeholder="Describe how the AI should behave during interviews"></textarea>
+                                    <small class="form-text text-muted">The AI will adopt this personality during interviews</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Candidate Criteria -->
+                        <div class="mb-4">
+                            <label class="form-label fw-medium d-flex align-items-center">
+                                <i class="bi bi-person-check me-2 text-primary"></i>Candidate Criteria
+                                <span class="ms-auto">
+                                    <button type="button" class="btn btn-sm btn-outline-primary add-criteria-btn">
+                                        <i class="bi bi-plus-circle me-1"></i>Add Criteria
+                                    </button>
+                                </span>
+                            </label>
+                            <div class="criteria-container px-2 py-3 border rounded-3 bg-light">
                                 <div class="criteria-item mb-2">
                                     <div class="input-group">
                                         <span class="input-group-text bg-white">
                                             <i class="bi bi-check-circle text-success"></i>
                                         </span>
-                                        <input type="text" class="form-control" 
-                                               value="Experience with cloud platforms (AWS, Azure, GCP)">
+                                        <input type="text" class="form-control" placeholder="Required skill or qualification">
                                         <button type="button" class="btn btn-outline-danger remove-criteria">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -179,10 +480,10 @@
                                 <i class="bi bi-trash me-2"></i>Delete Agent
                             </button>
                             <div>
-                                <button type="button" class="btn btn-outline-secondary me-2">
+                                <button type="button" class="btn btn-outline-secondary reset-btn">
                                     <i class="bi bi-arrow-clockwise me-1"></i>Reset
                                 </button>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-primary save-agent-btn">
                                     <i class="bi bi-save me-2"></i>Save Agent
                                 </button>
                             </div>
@@ -190,276 +491,57 @@
                     </form>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- JavaScript for dynamic content -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Keep track of job position count
-        let jobCount = 1;
+        `;
+        jobAccordion.appendChild(newJobItem);
         
-        // Function to update job title display when input changes
-        function setupTitleListeners() {
-            document.querySelectorAll('.job-title-input').forEach(input => {
-                if (!input.hasListener) {
-                    input.addEventListener('input', function() {
-                        const jobItem = input.closest('.job-item');
-                        const titleDisplay = jobItem.querySelector('.job-title-display');
-                        titleDisplay.textContent = input.value || 'Untitled Position';
-                    });
-                    input.hasListener = true;
-                }
-            });
-        }
-        
-        // Function to add criteria item
-        function addCriteriaItem(container) {
-            const criteriaItem = document.createElement('div');
-            criteriaItem.className = 'criteria-item mb-2';
-            
-            criteriaItem.innerHTML = `
-                <div class="input-group">
-                    <span class="input-group-text bg-white">
-                        <i class="bi bi-check-circle text-success"></i>
-                    </span>
-                    <input type="text" class="form-control" 
-                           placeholder="Required skill or qualification">
-                    <button type="button" class="btn btn-outline-danger remove-criteria">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            `;
-            
-            container.appendChild(criteriaItem);
-            
-            // Add event listener to remove button
-            criteriaItem.querySelector('.remove-criteria').addEventListener('click', function() {
-                criteriaItem.remove();
-            });
-            
-            // Focus on the new input field
-            criteriaItem.querySelector('input').focus();
-        }
-        
-        // Add event listeners to criteria buttons for the initial job
-        document.querySelector('.add-criteria-btn').addEventListener('click', function() {
-            const container = this.closest('.mb-4').querySelector('.criteria-container');
+        // Set up listeners for the new job item
+        setupTitleListeners(newJobItem);
+        newJobItem.querySelector('.add-criteria-btn').addEventListener('click', function() {
+            const container = newJobItem.querySelector('.criteria-container');
             addCriteriaItem(container);
         });
-        
-        document.querySelector('.remove-criteria').addEventListener('click', function() {
+        newJobItem.querySelector('.remove-criteria').addEventListener('click', function() {
             this.closest('.criteria-item').remove();
         });
-        
-        // Add event listener to remove job button
-        document.querySelector('.remove-job-btn').addEventListener('click', function() {
+        newJobItem.querySelector('.remove-job-btn').addEventListener('click', function() {
             if (document.querySelectorAll('.job-item').length > 1) {
-                this.closest('.job-item').remove();
+                const jobItem = this.closest('.job-item');
+                const agentId = jobItem.getAttribute('data-agent-id');
+                if (agentId) {
+                    fetch(`{{ url_for('delete_agent', agent_id="") }}${agentId}`, {
+                        method: "DELETE"
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            jobItem.remove();
+                        } else {
+                            console.error("Error deleting agent:", data.error);
+                        }
+                    })
+                    .catch(err => console.error("Fetch error:", err));
+                } else {
+                    jobItem.remove();
+                }
             } else {
                 alert('You need at least one job position.');
             }
         });
+        addFormSubmitListener(newJobItem.querySelector('.job-form'));
         
-        // Add event listener to add new job button
-        document.getElementById('add-job-btn').addEventListener('click', function() {
-            jobCount++;
-            const jobAccordion = document.getElementById('jobAccordion');
-            const newJobItem = document.createElement('div');
-            newJobItem.className = 'accordion-item job-item mb-4 border rounded-4 shadow';
-            
-            const jobId = `job-collapse-${jobCount}`;
-            
-            newJobItem.innerHTML = `
-                <h2 class="accordion-header position-relative">
-                    <div class="position-badge">
-                        <i class="bi bi-briefcase-fill"></i>
-                    </div>
-                    <button class="accordion-button collapsed rounded-top-4 ps-5" type="button" data-bs-toggle="collapse" data-bs-target="#${jobId}">
-                        <div class="d-flex justify-content-between align-items-center w-100 pe-3">
-                            <span class="job-title-display fw-bold">New Position</span>
-                            <span class="badge bg-secondary rounded-pill d-none d-md-inline">Other</span>
-                        </div>
-                    </button>
-                </h2>
-                <div id="${jobId}" class="accordion-collapse collapse" data-bs-parent="#jobAccordion">
-                    <div class="accordion-body">
-                        <form class="job-form">
-                            <div class="row mb-4">
-                                <!-- Left Column -->
-                                <div class="col-md-6 pe-md-4">
-                                    <!-- Job Title -->
-                                    <div class="mb-4">
-                                        <label class="form-label fw-medium">
-                                            <i class="bi bi-briefcase-fill me-2 text-primary"></i>Job Title
-                                        </label>
-                                        <input type="text" class="form-control job-title-input" 
-                                               placeholder="Enter job title" value="New Position">
-                                        <small class="form-text text-muted">The specific job position being hired for</small>
-                                    </div>
-
-                                    <!-- Job Category -->
-                                    <div class="mb-4">
-                                        <label class="form-label fw-medium">
-                                            <i class="bi bi-tag-fill me-2 text-primary"></i>Category
-                                        </label>
-                                        <select class="form-select">
-                                            <option value="tech">Technology</option>
-                                            <option value="marketing">Marketing</option>
-                                            <option value="sales">Sales</option>
-                                            <option value="design">Design</option>
-                                            <option value="finance">Finance</option>
-                                            <option value="hr">Human Resources</option>
-                                            <option value="other" selected>Other</option>
-                                        </select>
-                                        <small class="form-text text-muted">Job field or department</small>
-                                    </div>
-
-                                    <!-- Company Values -->
-                                    <div class="mb-4">
-                                        <label class="form-label fw-medium">
-                                            <i class="bi bi-building me-2 text-primary"></i>Company Values
-                                        </label>
-                                        <textarea class="form-control" rows="3" 
-                                            placeholder="Describe your company's core values and culture"></textarea>
-                                        <small class="form-text text-muted">What makes your company unique and what you stand for</small>
-                                    </div>
-                                </div>
-
-                                <!-- Right Column -->
-                                <div class="col-md-6 ps-md-4">
-                                    <!-- Job Description -->
-                                    <div class="mb-4">
-                                        <label class="form-label fw-medium">
-                                            <i class="bi bi-file-text me-2 text-primary"></i>Job Description
-                                        </label>
-                                        <textarea class="form-control" rows="4" 
-                                            placeholder="Full description of job responsibilities and requirements"></textarea>
-                                        <small class="form-text text-muted">Detailed explanation of the role, daily tasks, and team structure</small>
-                                    </div>
-
-                                    <!-- AI Behavior -->
-                                    <div class="mb-4">
-                                        <label class="form-label fw-medium">
-                                            <i class="bi bi-gear me-2 text-primary"></i>AI Interviewer Personality
-                                        </label>
-                                        <div class="mb-2">
-                                            <div class="btn-group w-100" role="group">
-                                                <input type="radio" class="btn-check" name="personality-${jobCount}" id="personality-${jobCount}-1" value="professional" checked>
-                                                <label class="btn btn-outline-secondary" for="personality-${jobCount}-1">Professional</label>
-                                                
-                                                <input type="radio" class="btn-check" name="personality-${jobCount}" id="personality-${jobCount}-2" value="friendly">
-                                                <label class="btn btn-outline-secondary" for="personality-${jobCount}-2">Friendly</label>
-                                                
-                                                <input type="radio" class="btn-check" name="personality-${jobCount}" id="personality-${jobCount}-3" value="technical">
-                                                <label class="btn btn-outline-secondary" for="personality-${jobCount}-3">Technical</label>
-                                                
-                                                <input type="radio" class="btn-check" name="personality-${jobCount}" id="personality-${jobCount}-4" value="custom">
-                                                <label class="btn btn-outline-secondary" for="personality-${jobCount}-4">Custom</label>
-                                            </div>
-                                        </div>
-                                        
-                                        <textarea class="form-control" rows="3" 
-                                            placeholder="Describe how the AI should behave during interviews"></textarea>
-                                        <small class="form-text text-muted">The AI will adopt this personality during interviews</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Candidate Criteria -->
-                            <div class="mb-4">
-                                <label class="form-label fw-medium d-flex align-items-center">
-                                    <i class="bi bi-person-check me-2 text-primary"></i>Candidate Criteria
-                                    <span class="ms-auto">
-                                        <button type="button" class="btn btn-sm btn-outline-primary add-criteria-btn">
-                                            <i class="bi bi-plus-circle me-1"></i>Add Criteria
-                                        </button>
-                                    </span>
-                                </label>
-                                <div id="criteria-container-${jobCount}" class="criteria-container px-2 py-3 border rounded-3 bg-light">
-                                    <div class="criteria-item mb-2">
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-white">
-                                                <i class="bi bi-check-circle text-success"></i>
-                                            </span>
-                                            <input type="text" class="form-control" 
-                                                   placeholder="Required skill or qualification">
-                                            <button type="button" class="btn btn-outline-danger remove-criteria">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <small class="form-text text-muted mt-2">Skills, experience, and qualifications needed</small>
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="d-flex justify-content-between">
-                                <button type="button" class="btn btn-outline-danger remove-job-btn">
-                                    <i class="bi bi-trash me-2"></i>Delete Agent
-                                </button>
-                                <div>
-                                    <button type="button" class="btn btn-outline-secondary me-2">
-                                        <i class="bi bi-arrow-clockwise me-1"></i>Reset
-                                    </button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-save me-2"></i>Save Agent
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        `;
-            
-            jobAccordion.appendChild(newJobItem);
-            
-            // Set up event listeners for the new job item
-            const newAddCriteriaBtn = newJobItem.querySelector('.add-criteria-btn');
-            newAddCriteriaBtn.addEventListener('click', function() {
-                const container = this.closest('.mb-4').querySelector('.criteria-container');
-                addCriteriaItem(container);
-            });
-            
-            newJobItem.querySelector('.remove-criteria').addEventListener('click', function() {
-                this.closest('.criteria-item').remove();
-            });
-            
-            newJobItem.querySelector('.remove-job-btn').addEventListener('click', function() {
-                if (document.querySelectorAll('.job-item').length > 1) {
-                    this.closest('.job-item').remove();
-                } else {
-                    alert('You need at least one job position.');
-                }
-            });
-            
-            // Update all job title listeners
-            setupTitleListeners();
-            
-            // Auto-open the new item
-            const newCollapseElement = newJobItem.querySelector('.accordion-collapse');
-            const bsCollapse = new bootstrap.Collapse(newCollapseElement, {
-                toggle: true
-            });
-        });
-        
-        // Set up initial title listeners
-        setupTitleListeners();
-        
-        // Prevent form submission (would be handled by backend in a real app)
-        document.querySelectorAll('.job-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                alert('Settings saved! (This is a demo - no actual saving occurs)');
-            });
-        });
+        // Auto-open the new item
+        const newCollapseElement = newJobItem.querySelector('.accordion-collapse');
+        new bootstrap.Collapse(newCollapseElement, { toggle: true });
     });
+    
+    // Initial setup for title listeners
+    document.querySelectorAll('.job-item').forEach(item => {
+        setupTitleListeners(item);
+    });
+});
 </script>
 
 <style>
-    /* Custom styling */
     body {
         font-family: 'Poppins', sans-serif;
     }
@@ -516,7 +598,6 @@
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
     }
     
-    /* Animation for new job items */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-20px); }
         to { opacity: 1; transform: translateY(0); }
@@ -526,7 +607,6 @@
         animation: fadeIn 0.4s ease-out forwards;
     }
     
-    /* Button styling */
     .btn-primary {
         background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
         border: none;
