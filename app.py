@@ -10,20 +10,38 @@ app.secret_key = 'aicruitersecretkey'
 os.makedirs('uploads', exist_ok=True)
 os.makedirs('data', exist_ok=True)
 
-AGENTS_FILE = 'data/agents.json'
+AGENTS_FILE = os.path.join('data', 'agents.json')
 DETAILS_FILE = 'details.json'
+AGENT_DETAILS_FILE = os.path.join('data', 'agentdetails.json')  # Consolidated agent details file
 
 def get_agents():
     if os.path.exists(AGENTS_FILE):
         try:
             with open(AGENTS_FILE, 'r') as f:
-                return json.load(f)
+                agents = json.load(f)
         except:
-            return _get_default_agents()
+            agents = _get_default_agents()
+            save_agents(agents)
     else:
-        default_agents = _get_default_agents()
-        save_agents(default_agents)
-        return default_agents
+        agents = _get_default_agents()
+        save_agents(agents)
+    
+    # Ensure demo agents are included in the consolidated agent details file
+    try:
+        if os.path.exists(AGENT_DETAILS_FILE) and os.path.getsize(AGENT_DETAILS_FILE) > 0:
+            with open(AGENT_DETAILS_FILE, 'r') as f:
+                agents_dict = json.load(f)
+        else:
+            agents_dict = {}
+        for agent in agents:
+            if agent['id'] not in agents_dict:
+                agents_dict[agent['id']] = agent
+        with open(AGENT_DETAILS_FILE, 'w') as f:
+            json.dump(agents_dict, f, indent=4)
+    except Exception as e:
+        print(f"Error updating agent details file: {str(e)}")
+    
+    return agents
 
 def _get_default_agents():
     return [
@@ -32,14 +50,28 @@ def _get_default_agents():
             "title": "Software Engineer",
             "category": "Technology",
             "values": "Innovation, collaboration, and excellence are our core values.",
-            "description": "We're looking for a Software Engineer to develop high-quality applications."
+            "description": "We're looking for a Software Engineer to develop high-quality applications.",
+            "personality": {
+                "type": "professional",
+                "description": ""
+            },
+            "criteria": [
+                "5+ years of software development experience",
+                "Proficiency in JavaScript and React",
+                "Experience with cloud platforms (AWS, Azure, GCP)"
+            ]
         },
         {
             "id": "product-manager",
             "title": "Product Manager",
             "category": "Product",
             "values": "User-focused, data-driven decision making",
-            "description": "We need a Product Manager who can translate business goals into product features."
+            "description": "We need a Product Manager who can translate business goals into product features.",
+            "personality": {
+                "type": "professional",
+                "description": ""
+            },
+            "criteria": []
         }
     ]
 
@@ -60,6 +92,22 @@ def get_candidate_details():
 def save_candidate_details(details):
     with open(DETAILS_FILE, 'w') as f:
         json.dump(details, f, indent=2)
+
+def save_agent_details(agent_data):
+    """Save agent details to agentdetails.json file"""
+    try:
+        if os.path.exists(AGENT_DETAILS_FILE) and os.path.getsize(AGENT_DETAILS_FILE) > 0:
+            with open(AGENT_DETAILS_FILE, 'r') as f:
+                agents_dict = json.load(f)
+        else:
+            agents_dict = {}
+        agents_dict[agent_data['id']] = agent_data
+        with open(AGENT_DETAILS_FILE, 'w') as f:
+            json.dump(agents_dict, f, indent=4)
+        return True
+    except Exception as e:
+        print(f"Error saving agent details: {str(e)}")
+        return False
 
 @app.route('/')
 def home():
@@ -122,6 +170,8 @@ def save_agent():
             agents.append(agent_data)
         
         save_agents(agents)
+        save_agent_details(agent_data)
+        
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
@@ -132,10 +182,20 @@ def delete_agent(agent_id):
         agents = get_agents()
         agents = [agent for agent in agents if agent['id'] != agent_id]
         save_agents(agents)
+        # Also remove from consolidated agent details file
+        try:
+            if os.path.exists(AGENT_DETAILS_FILE):
+                with open(AGENT_DETAILS_FILE, 'r') as f:
+                    agents_dict = json.load(f)
+                if agent_id in agents_dict:
+                    del agents_dict[agent_id]
+                with open(AGENT_DETAILS_FILE, 'w') as f:
+                    json.dump(agents_dict, f, indent=4)
+        except Exception as e:
+            print(f"Error deleting agent from agent details: {str(e)}")
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
 if __name__ == '__main__':
-    # Run Flask in single-threaded mode and disable the reloader
     app.run(debug=True, threaded=False, use_reloader=False)

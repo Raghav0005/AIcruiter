@@ -3,7 +3,41 @@
     "id": "software-engineer",
     "title": "Software Engineer",
     "category": "Technology",
-    "values": "Innovation, collaboration, and excellence are our core values.",
-    "description": "We're looking for a Software Engineer to develop high-quality applications."
+    "values": "Test values",
+    "description": "We're looking for a Software Engineer to develop high-quality applications.",
+    "personality": {
+      "type": "friendly",
+      "description": ""
+    },
+    "criteria": [
+      "Python"
+    ]
+  },
+  {
+    "id": "data-science",
+    "title": "Data science",
+    "category": "Technology",
+    "values": "No specific values",
+    "description": "lala",
+    "personality": {
+      "type": "professional",
+      "description": ""
+    },
+    "criteria": [
+      "python",
+      "sql"
+    ]
+  },
+  {
+    "id": "new-position",
+    "title": "New Position",
+    "category": "Other",
+    "values": "",
+    "description": "",
+    "personality": {
+      "type": "professional",
+      "description": ""
+    },
+    "criteria": []
   }
 ]
