@@ -19,8 +19,7 @@ transcription = '''
 '''
 
 def setup_gemini():
-    """Setup Gemini API with your API key"""
-    api_key = "AIzaSyDazL_7s5qbw2382DVkmN7FQ7KfbtAVGgQ"
+    api_key = os.getenv("GOOGLE_API_KEY")
     
     genai.configure(api_key=api_key)
     return genai.GenerativeModel('gemini-2.0-flash')
